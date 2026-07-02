@@ -1,10 +1,11 @@
 import { IconButton, InputAdornment, TextField } from "@mui/material"
 import { chatBotServices } from "./services/ChatBotServices"
-import { useEffect, useRef, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import SendIcon from '@mui/icons-material/Send';
 import { CircularProgress } from '@mui/material';
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ChatContext } from "./ChatContext";
 
 export interface Chat{
     question:string,
@@ -16,6 +17,7 @@ export const ChatBotChat = () =>{
     const [prompt, setPrompt] = useState('')
     const [chat, setChat] = useState<Chat[]>([])
     const [isAnswerLoading, setIsAnswerLoading] = useState(false)
+    const context = useContext(ChatContext)
 
     useEffect(()=>{
         setChat(JSON.parse(localStorage.getItem('chat') ?? "[]"))
@@ -39,6 +41,11 @@ export const ChatBotChat = () =>{
             setPrompt('')
         })
     }
+
+    useEffect(()=>{
+        if(chat.length)
+            localStorage.setItem('chat', JSON.stringify(chat))
+    },[chat])
 
     const sleep = (ms: number) =>
         new Promise(resolve => setTimeout(resolve, ms));
@@ -73,7 +80,6 @@ export const ChatBotChat = () =>{
 
             await sleep(30);
         }
-        localStorage.setItem('chat', JSON.stringify(chat))
     }
 
     return(
@@ -87,9 +93,13 @@ export const ChatBotChat = () =>{
                 borderRadius:'10px',
                 display:'flex',
                 flexDirection:'column',
+                position: "fixed",
+                left: context?.position.x,
+                top: context?.position.y,
             }}
         >
             <div
+                onPointerDown={context?.onPointerDownFunc}
                 style={{
                     height:'10%'
                 }}
@@ -124,7 +134,8 @@ export const ChatBotChat = () =>{
                                 backgroundColor:'lightblue',
                                 margin:'10px',
                                 padding:'10px',
-                                borderRadius:'0px 10px 10px 10px'
+                                borderRadius:'0px 10px 10px 10px',
+                                overflowWrap: "break-word",
                             }}>
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                     {item.answer}
