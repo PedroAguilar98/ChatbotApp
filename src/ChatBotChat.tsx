@@ -6,6 +6,10 @@ import { CircularProgress } from '@mui/material';
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ChatContext } from "./ChatContext";
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import RemoveIcon from '@mui/icons-material/Remove';
+import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 
 export interface Chat{
     question:string,
@@ -14,14 +18,23 @@ export interface Chat{
 
 export const ChatBotChat = () =>{
     const chatContainerRef = useRef<HTMLDivElement>(null);
+    const chatComponent = useRef<HTMLDivElement>(null);
     const [prompt, setPrompt] = useState('')
     const [chat, setChat] = useState<Chat[]>([])
     const [isAnswerLoading, setIsAnswerLoading] = useState(false)
     const context = useContext(ChatContext)
-
+    const [isFullScreen, setIsFullScreen] = useState(false)
+    const fullWidth = 600
+    const fullHeight = 700
     useEffect(()=>{
         setChat(JSON.parse(localStorage.getItem('chat') ?? "[]"))
     },[])
+
+    useEffect(()=>{
+        if(isFullScreen){
+            context?.setPosition({x:window.innerWidth / 2 - fullWidth / 2, y:window.innerHeight / 2 - fullHeight / 2})
+        }
+    },[isFullScreen])
 
     useEffect(() => {
         if (!chatContainerRef.current) return;
@@ -82,11 +95,18 @@ export const ChatBotChat = () =>{
         }
     }
 
+    const deleteChat = () =>{
+        setChat([])
+        localStorage.removeItem('chat')
+    }
+
     return(
         <div
+            id='chat'
+            ref={chatComponent}
             style={{
-                width:'300px',
-                height:'500px',
+                width:isFullScreen ? `${fullWidth}px` :'300px',
+                height:isFullScreen ? `${fullHeight}px` :'500px',
                 borderWidth:'1px',
                 borderStyle:'solid',
                 borderColor:'lightgrey',
@@ -94,17 +114,40 @@ export const ChatBotChat = () =>{
                 display:'flex',
                 flexDirection:'column',
                 position: "fixed",
-                left: context?.position.x,
-                top: context?.position.y,
+                left: context?.position?.x,
+                top: context?.position?.y,
             }}
         >
             <div
                 onPointerDown={context?.onPointerDownFunc}
                 style={{
-                    height:'10%'
+                    cursor:'grab',
+                    height:'10%',
+                    display:'flex',
+                    flexDirection:'row',
+                    borderRadius:'10px 10px 0px 0px',
+                    justifyContent:'flex-end',
+                    alignItems:'center',
+                    paddingRight:'10px',
+                    backgroundColor:'#6cad6c',
+                    fontWeight:'bolder'
                 }}
-            >
-
+            >   
+                
+                
+                <IconButton onClick={deleteChat}>
+                    <DeleteSweepIcon color="action" fontSize="medium"/>
+                </IconButton>
+                <IconButton onClick={()=>context?.setIsButton(prev=>!prev)}>
+                    <RemoveIcon color="action"/>
+                </IconButton>
+                <IconButton onClick={()=>setIsFullScreen(prev=>!prev)}>
+                    {  
+                        !isFullScreen ? 
+                        <OpenInFullIcon color="action" />:
+                        <CloseFullscreenIcon color="action"/>
+                    }
+                </IconButton>
             </div>
             <div
                 ref={chatContainerRef}
@@ -112,12 +155,17 @@ export const ChatBotChat = () =>{
                     borderTopWidth:'1px',
                     borderTopStyle:'solid',
                     borderTopColor:'lightgrey',
+                    backgroundColor:'#c8f3cb',
                     height:'70%', overflowY: "auto",
                 }}
             >
                 {
-                    chat.map(item=>(
-                        <div style={{display:'flex', flexDirection:'column'}}>
+                    !chat.length ?
+                    <div style={{display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', fontWeight:'bolder', height:'50%', color:'grey'}}>
+                        {'Estoy acá para ayudarte'}
+                    </div>:
+                    chat.map((item, index)=>(
+                        <div key={index} style={{display:'flex', flexDirection:'column'}}>
                             <div style={{
                                 width:'65%',
                                 alignSelf:'flex-end',
@@ -147,6 +195,7 @@ export const ChatBotChat = () =>{
             </div>
             <TextField
                 fullWidth
+                placeholder="Escribe tu pregunta..."
                 value={prompt}
                 onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -159,6 +208,9 @@ export const ChatBotChat = () =>{
                 sx={{
                     "& .MuiOutlinedInput-root": {
                         paddingRight: "45px",
+                        "&.Mui-focused fieldset": {
+                            borderColor:'#6cad6c',
+                        }
                     },
                 }}
                 slotProps={{
@@ -175,7 +227,7 @@ export const ChatBotChat = () =>{
                                 >
                                     {isAnswerLoading ?
                                         <CircularProgress/> :
-                                        <SendIcon color="info"/>
+                                        <SendIcon style={{color:'#6cad6c'}}/>
                                     }
                                 </IconButton>
                             </InputAdornment>
@@ -183,8 +235,8 @@ export const ChatBotChat = () =>{
                     },
                 }}
                 multiline
-                minRows={3}
-                maxRows={3}
+                minRows={isFullScreen ? 5 : 3}
+                maxRows={isFullScreen ? 5 : 3}
             />
         </div>
     )

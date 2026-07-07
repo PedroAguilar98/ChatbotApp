@@ -1,23 +1,29 @@
-import { useEffect, useState } from "react"
+import { useContext } from "react"
 import { ChatBotButton } from "./ChatBotButton"
 import { ChatBotChat } from "./ChatBotChat"
-import { ChatProvider } from "./ChatContext"
+import { ChatContext, ChatProvider } from "./ChatContext"
+
+const ChatBotMode = () =>{
+    const context = useContext(ChatContext)
+    return(
+         <div
+            >
+            {
+                context?.isButton ?
+                    <ChatBotButton/>
+                :
+                    <ChatBotChat />
+            }
+        </div>
+    )
+}
 
 export const GeneralChatBot = () =>{
-    const [isButton, setIsButton] = useState(true)
+    
     
     return(
         <ChatProvider>
-            <div
-                onClick={()=>setIsButton(false)}
-            >
-            {
-                isButton ?
-                    <ChatBotButton/>
-                :
-                    <ChatBotChat/>
-            }
-            </div>
+           <ChatBotMode/>
         </ChatProvider>
     )
     
