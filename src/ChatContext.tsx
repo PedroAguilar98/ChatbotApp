@@ -1,14 +1,16 @@
 import { createContext, useEffect, useState } from "react";
 
+interface Position {
+  x:number, 
+  y:number
+}
+
 interface ChatContextType {
   position: {x:number, y:number} | null;
   onPointerDownFunc: (e: React.PointerEvent<HTMLButtonElement | HTMLDivElement>) => void;
   isButton:boolean;
   setIsButton:React.Dispatch<React.SetStateAction<boolean>>;
-  setPosition:React.Dispatch<React.SetStateAction<{
-    x: number;
-    y: number;
-  }>>
+  setPosition:React.Dispatch<React.SetStateAction<Position>>
 }
 
 export const ChatContext = createContext<ChatContextType | null>(null);
@@ -17,16 +19,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [isButton, setIsButton] = useState(true)
   const buttonSize = {width:180, height:50}
   const chatSize = {width:300, height:500}
-  const [position, setPosition] = useState<{x:number, y:number}>({
+  const [position, setPosition] = useState<Position>({
       x: window.innerWidth - 200 - chatSize.width + buttonSize.width,
       y: window.innerHeight - chatSize.height - buttonSize.height,
     });
-  const [originalPosition, setOriginalPosition] = useState({
-      x: window.innerWidth - 200 - chatSize.width + buttonSize.width,
-      y: window.innerHeight - chatSize.height - buttonSize.height,
-    })
+  const [originalPosition, setOriginalPosition] = useState<Position | null>(null)
   const [dragging, setDragging] = useState(false);
-  const [relativePosition, setRelativePosition] = useState<{x:number, y:number}>({
+  const [relativePosition, setRelativePosition] = useState<Position>({
       x: 0,
       y: 0,
   })
@@ -46,19 +45,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   },[position])
 
   useEffect(() => {
-      let auxPos = position
+      let moveCount = 0
       const handleMove = (e: PointerEvent) => {
           if (!dragging) return;
-          auxPos.x = e.clientX - relativePosition.x
-          auxPos.y = e.clientY - relativePosition.y
+          moveCount ++
           setPosition({
-              x:auxPos.x ,
-              y:auxPos.y  
-          });
-      };
+              x:e.clientX - relativePosition.x,
+              y:e.clientY - relativePosition.y 
+          })
+      }
 
       const handleUp = () => {
-          if(auxPos.x === originalPosition.x && auxPos.y === originalPosition.y && isButton){
+          if(
+            isButton &&
+            !moveCount
+          ){
             setIsButton(false)
           }
           setOriginalPosition(position)
@@ -101,7 +102,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       } 
     }
     setPosition(auxPosition)
-    /* setOriginalPosition(auxPosition) */
+    if(!originalPosition){
+      setOriginalPosition(auxPosition)
+    }
   },[isButton])
   
 
