@@ -1,21 +1,23 @@
 import type { Chat } from "../ChatBotChat";
+import type { ChatbotConfig } from "../config/ChatbotConfig";
+import { buildHeaders } from "./httpClient";
 
-const apiUrl = import.meta.env.VITE_API_URL;
-class ChatBotService {
-    sendPrompt = async (prompt:string, prevChat:Chat[]) =>{
-        const response = await fetch(`${apiUrl}/chat`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                tenantId: 1,
-                question: prompt,
-                prevChat
-            }),
-        });
-        return response
-    }
+export function createChatBotService(config: ChatbotConfig) {
+    return {
+        sendPrompt: async (prompt: string, prevChat: Chat[]) => {
+            const headers = await buildHeaders(config);
+            const response = await fetch(`${config.apiUrl}/chat`, {
+                method: "POST",
+                headers,
+                body: JSON.stringify({
+                    tenantId: config.tenantId,
+                    question: prompt,
+                    prevChat,
+                }),
+            });
+            return response;
+        },
+    };
 }
 
-export const chatBotServices = new ChatBotService()
+export type ChatBotService = ReturnType<typeof createChatBotService>;

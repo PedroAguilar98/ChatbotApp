@@ -1,11 +1,12 @@
 import { Box, IconButton, InputAdornment, Stack, TextField, Typography } from "@mui/material"
-import { chatBotServices } from "./services/ChatBotServices"
 import { useContext, useEffect, useRef, useState } from "react"
 import SendIcon from '@mui/icons-material/Send';
 import { CircularProgress } from '@mui/material';
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ChatContext } from "./ChatContext";
+import { useChatBotService, useChatbotConfig } from "./config/useChatbotConfig";
+import { resolveStorageNamespace } from "./config/ChatbotConfig";
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import RemoveIcon from '@mui/icons-material/Remove';
 import CloseFullscreenIcon from '@mui/icons-material/CloseFullscreen';
@@ -24,12 +25,16 @@ export const ChatBotChat = (props:{color:string, chatName:string, titleColor:str
     const [chat, setChat] = useState<Chat[]>([])
     const [isAnswerLoading, setIsAnswerLoading] = useState(false)
     const context = useContext(ChatContext)
+    const config = useChatbotConfig()
+    const chatBotService = useChatBotService()
     const [isFullScreen, setIsFullScreen] = useState(false)
     const fullWidth = 600
     const fullHeight = 700
+    const storageKey = `chatbot:${resolveStorageNamespace(config)}:chat`
 
     useEffect(()=>{
-        setChat(JSON.parse(localStorage.getItem('chat') ?? "[]"))
+        setChat(JSON.parse(localStorage.getItem(storageKey) ?? "[]"))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     },[])
 
     useEffect(()=>{
@@ -49,23 +54,24 @@ export const ChatBotChat = (props:{color:string, chatName:string, titleColor:str
         if(isAnswerLoading) return
         setChat(prev=>([...prev, {question:prompt, answer:'...'}]))
         setIsAnswerLoading(true)
-        await chatBotServices.sendPrompt(prompt, chat).then(async res=>{
+        try {
+            const res = await chatBotService.sendPrompt(prompt, chat)
             await readAnswer(res)
-        }).finally(()=>{
+        } catch (error) {
+            config.onError?.(error, "sendPrompt")
+        } finally {
             setIsAnswerLoading(false)
             setPrompt('')
-        })
+        }
     }
 
     useEffect(()=>{
         if(chat.length)
-            localStorage.setItem('chat', JSON.stringify(chat))
+            localStorage.setItem(storageKey, JSON.stringify(chat))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     },[chat])
 
-    const sleep = (ms: number) =>
-        new Promise(resolve => setTimeout(resolve, ms));
-
-        const readAnswer = async (response:any) =>{
+    const readAnswer = async (response:any) =>{
         const reader = response.body!.getReader();
 
         const decoder = new TextDecoder();
@@ -92,19 +98,17 @@ export const ChatBotChat = (props:{color:string, chatName:string, titleColor:str
 
                 return updated;
             });
-
-            /* await sleep(30); */
         }
     }
 
     const deleteChat = () =>{
         setChat([])
-        localStorage.removeItem('chat')
+        localStorage.removeItem(storageKey)
     }
 
     return(
         <Box
-            id='chat'
+            id={`chat-${config.tenantId}`}
             ref={chatComponent}
             style={{
                 width:isFullScreen ? `${fullWidth}px` :'300px',

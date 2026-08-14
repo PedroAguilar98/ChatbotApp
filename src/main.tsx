@@ -1,10 +1,14 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
+import { initChatbot } from './lib/initChatbot'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+// Development/demo harness only — dogfoods the same public API a host
+// application would use. Not part of the library build.
+const container = document.getElementById('root')
+if (!container) {
+  throw new Error('#root element not found')
+}
+
+initChatbot(container, {
+  apiUrl: import.meta.env.VITE_API_URL,
+  tenantId: import.meta.env.VITE_TENANT_ID ?? 1,
+})
