@@ -17,7 +17,7 @@ const ChatBotMode = () => {
     const [chatName, setChatName] = useState(theme?.chatName ?? "PepeBot");
     const [titleColor, setTitleColor] = useState(theme?.titleColor ?? "#ffffff");
     const [bodyColor, setBodyColor] = useState(theme?.bodyColor ?? "#667085");
-    const [iconSrc, setIconSrc] = useState<string | null>(theme?.iconSrc ?? null);
+    const [iconSrc, setIconSrc] = useState<string | null>(theme?.iconUrl ?? null);
     const [backgroundChatColor, setbackGroundChatColor] = useState(theme?.backgroundChatColor ?? '')
     const [defaultMessage, setDefaultMessage] = useState(theme?.defaultMessage ?? '')
 
@@ -32,7 +32,7 @@ const ChatBotMode = () => {
                 if (!theme?.chatName) setChatName(settings.chatName);
                 if (!theme?.titleColor) setTitleColor(settings.titleColor);
                 if (!theme?.bodyColor) setBodyColor(settings.bodyColor);
-                if (!theme?.iconSrc) setIconSrc(settings.iconSrc);
+                if (!theme?.iconUrl) setIconSrc(data.tenant?.iconUrl);
                 if (!theme?.backgroundChatColor) setbackGroundChatColor(settings.backgroundChatColor);
                 if (!theme?.defaultMessage) setDefaultMessage(settings.defaultMessage);
             }
@@ -54,7 +54,7 @@ const ChatBotMode = () => {
                         color={color}
                         chatName={chatName}
                         titleColor={titleColor}
-                        iconSrc={iconSrc}
+                        iconUrl={iconSrc}
                     />
                     :
                     <ChatBotChat

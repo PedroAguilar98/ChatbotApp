@@ -3,7 +3,7 @@ import { useContext } from "react";
 import { ChatContext } from "./ChatContext";
 import SmartToyOutlinedIcon from '@mui/icons-material/SmartToyOutlined';
 
-export const ChatBotButton = (props:{color:string, chatName:string, titleColor:string, iconSrc:string | null}) =>{
+export const ChatBotButton = (props:{color:string, chatName:string, titleColor:string, iconUrl:string | null}) =>{
     const context = useContext(ChatContext)
     return(
         <Fab 
@@ -22,8 +22,8 @@ export const ChatBotButton = (props:{color:string, chatName:string, titleColor:s
             }}
         >
             {
-                props.iconSrc ?
-                <img src={props.iconSrc} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} /> :
+                props.iconUrl ?
+                <img src={props.iconUrl} alt="" style={{ width: 24, height: 24, borderRadius: '50%', objectFit: 'cover' }} /> :
                 <SmartToyOutlinedIcon />
             }
             {props.chatName}

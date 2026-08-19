@@ -4,7 +4,7 @@ export interface ChatbotTheme {
     chatName?: string;
     titleColor?: string;
     bodyColor?: string;
-    iconSrc?: string | null;
+    iconUrl?: string | null;
     backgroundChatColor?: string;
     defaultMessage?: string;
 }
